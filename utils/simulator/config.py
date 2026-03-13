@@ -130,12 +130,16 @@ class EventConfig:
     door_std_duration_s: Std dev of door opening duration (s).
     working_hours: Tuple of (start_hour, end_hour) when door events are likely.
     off_hours_rate_fraction: Fraction of door_rate_per_hour applied outside working hours.
+    weekly_rate_modulation: Per-day multipliers on door_rate_per_hour (Mon=0 .. Sun=6).
+        None = no modulation (every day is the same). Values are multiplied with
+        the base rate, so 2.0 = twice as many door events on that day.
     """
     door_rate_per_hour: float = 2.0
     door_mean_duration_s: float = 30.0
     door_std_duration_s: float = 15.0
     working_hours: Tuple[int, int] = (8, 17)
     off_hours_rate_fraction: float = 0.05
+    weekly_rate_modulation: Optional[Tuple[float, ...]] = None
 
 
 @dataclass

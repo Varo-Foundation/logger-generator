@@ -42,11 +42,19 @@ class DoorEventGenerator:
         """Generate door events for one sample interval.
 
         Uses a Poisson process with rate depending on whether we're in working hours.
+        When weekly_rate_modulation is set, the base rate is scaled by the
+        day-of-week multiplier (Monday=0 .. Sunday=6).
         """
         if self._is_working_hours(interval_start):
             rate = self.config.door_rate_per_hour
         else:
             rate = self.config.door_rate_per_hour * self.config.off_hours_rate_fraction
+
+        # Apply weekly modulation if configured
+        modulation = self.config.weekly_rate_modulation
+        if modulation is not None:
+            day_of_week = interval_start.weekday()  # 0=Monday .. 6=Sunday
+            rate *= modulation[day_of_week]
 
         # Expected events in this interval
         expected = rate * (interval_s / 3600.0)

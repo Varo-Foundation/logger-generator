@@ -36,6 +36,7 @@ SCENARIO_SERIALS = {
     "heat_alarm": "SIM002",
     "freeze_alarm": "SIM003",
     "power_outage": "SIM004",
+    "outage_and_door_event": "SIM005",
 }
 
 
@@ -182,6 +183,76 @@ def scenario_power_outage(days: int, interval: int) -> tuple[EmsReport, Simulati
     return report, _base_config(seed=45)
 
 
+def scenario_outage_and_door_event(days: int, interval: int) -> tuple[EmsReport, SimulationConfig]:
+    """Demo: two distinct anomalies on one chart.
+
+    13-day window (in seconds; assembled segment-by-segment with carried state):
+      S1: 2.0d outage (POWER_OUTAGE + forced _power_in_outage) — opens with drama
+      S2: 4.0d normal recovery — compressor pulls TVC back into band
+      S3: 3.0d normal baseline
+      S4: 0.5d STUCK_DOOR — door bar saturates, TVC spikes
+      S5: 3.5d normal recovery — TVC returns to band
+    Story: 'outage hit, we recovered. Then someone left the door open, temp
+    spiked, we recovered again.'
+    """
+    lser = SCENARIO_SERIALS["outage_and_door_event"]
+    start = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
+
+    # (start_seconds, end_seconds, fault_kind) where fault_kind is None, "outage", or "stuck_door"
+    DAY = 86400
+    segments = [
+        (0,             2 * DAY,              "outage"),
+        (2 * DAY,       6 * DAY,              None),
+        (6 * DAY,       9 * DAY,              None),
+        (9 * DAY,       9 * DAY + DAY // 2,   "stuck_door"),
+        (9 * DAY + DAY // 2, days * DAY,      None),
+    ]
+
+    all_records = []
+    state = None
+
+    for seg_start_s, seg_end_s, fault_kind in segments:
+        seg_seconds = seg_end_s - seg_start_s
+        if seg_seconds <= 0:
+            continue
+        batch_size = seg_seconds // interval
+
+        seg_config = _base_config(seed=46)
+
+        if fault_kind == "outage":
+            seg_config.fault = FaultConfig(
+                fault_type=FaultType.POWER_OUTAGE,
+                fault_start_offset_s=0,
+                fault_duration_s=0,  # whole segment
+            )
+            if state is None:
+                state = SimulatorState()
+            state._power_in_outage = True
+            state._power_outage_end = start + dt.timedelta(seconds=seg_end_s + DAY)
+        elif fault_kind == "stuck_door":
+            seg_config.fault = FaultConfig(
+                fault_type=FaultType.STUCK_DOOR,
+                fault_start_offset_s=0,
+                fault_duration_s=0,  # whole segment
+            )
+            if state is not None:
+                state._power_in_outage = False
+                state._power_outage_end = None
+        else:
+            if state is not None:
+                state._power_in_outage = False
+                state._power_outage_end = None
+
+        seg_start_dt = start + dt.timedelta(seconds=seg_start_s)
+        rs = SimulatedRecordSet.generate(seg_config, batch_size, seg_start_dt, interval, state=state)
+        all_records.extend(rs.records)
+        state = rs.state
+
+    ems_records = [_to_ems_record_mains(r) for r in all_records]
+    report = _build_report(ems_records, lser)
+    return report, _base_config(seed=46)
+
+
 def _to_ems_record_mains(record: dict):
     """Convert a raw simulation record dict to EmsRecordMains."""
     from utils.schemas import EmsRecordMains
@@ -250,6 +321,7 @@ SCENARIOS = {
     "heat_alarm": scenario_heat_alarm,
     "freeze_alarm": scenario_freeze_alarm,
     "power_outage": scenario_power_outage,
+    "outage_and_door_event": scenario_outage_and_door_event,
 }
 
 

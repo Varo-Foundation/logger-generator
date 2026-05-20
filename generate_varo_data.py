@@ -37,6 +37,9 @@ SCENARIO_SERIALS = {
     "freeze_alarm": "SIM003",
     "power_outage": "SIM004",
     "outage_and_door_event": "SIM005",
+    "heat_wave": "SIM006",
+    "refrigerant_leak": "SIM007",
+    "bad_week": "SIM008",
 }
 
 
@@ -253,6 +256,159 @@ def scenario_outage_and_door_event(days: int, interval: int) -> tuple[EmsReport,
     return report, _base_config(seed=46)
 
 
+def scenario_heat_wave(days: int, interval: int) -> tuple[EmsReport, SimulationConfig]:
+    """Demo: extreme ambient heat wave — compressor stressed but in-spec.
+
+    13-day window stitched as 3 segments:
+      S1: 4d normal ambient (T_mean=28)
+      S2: 4d heat wave (T_mean=38, T_amplitude=6) — TVC sawtooth tightens
+      S3: 5d cool-down back to normal
+    No fault is injected; the compressor copes with hotter ambient by running
+    more aggressively, so TVC stays inside the 2–8°C band but the sawtooth
+    pattern visibly tightens during the middle window. Story: 'extreme heat
+    day, compressor handled it.'
+    """
+    lser = SCENARIO_SERIALS["heat_wave"]
+    start = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
+
+    DAY = 86400
+    segments = [
+        (0,         4 * DAY,  None),
+        (4 * DAY,   8 * DAY,  "heat"),
+        (8 * DAY,   days * DAY, None),
+    ]
+
+    all_records = []
+    state = None
+
+    for seg_start_s, seg_end_s, kind in segments:
+        seg_seconds = seg_end_s - seg_start_s
+        if seg_seconds <= 0:
+            continue
+        batch_size = seg_seconds // interval
+
+        seg_config = _base_config(seed=47)
+        if kind == "heat":
+            seg_config.ambient.T_mean = 38.0
+            seg_config.ambient.T_amplitude = 6.0
+
+        seg_start_dt = start + dt.timedelta(seconds=seg_start_s)
+        rs = SimulatedRecordSet.generate(seg_config, batch_size, seg_start_dt, interval, state=state)
+        all_records.extend(rs.records)
+        state = rs.state
+
+    ems_records = [_to_ems_record_mains(r) for r in all_records]
+    report = _build_report(ems_records, lser)
+    return report, _base_config(seed=47)
+
+
+def scenario_refrigerant_leak(days: int, interval: int) -> tuple[EmsReport, SimulationConfig]:
+    """Demo: subtle refrigerant leak with gradual creep into HEAT alarm.
+
+    13-day window. 3d normal, then a single 10d segment with REFRIGERANT_LEAK
+    at ~0.5%/hr — compressor cooling capacity decays linearly, TVC drifts
+    upward over the back half of the chart and eventually crosses the alarm
+    band. Story: 'subtle creep that single-day reading would miss.'
+    """
+    lser = SCENARIO_SERIALS["refrigerant_leak"]
+    start = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
+
+    DAY = 86400
+
+    # S1: 3d normal
+    normal_cfg = _base_config(seed=48)
+    n1 = 3 * DAY // interval
+    rs1 = SimulatedRecordSet.generate(normal_cfg, n1, start, interval)
+
+    # S2: 10d refrigerant leak
+    leak_cfg = _base_config(seed=48)
+    leak_cfg.fault = FaultConfig(
+        fault_type=FaultType.REFRIGERANT_LEAK,
+        fault_start_offset_s=0,
+        fault_duration_s=0,  # permanent for the segment
+        refrigerant_leak_rate=0.005,  # 0.5% / hr of Q_compressor lost
+    )
+    n2 = (days - 3) * DAY // interval
+    leak_start = start + dt.timedelta(days=3)
+    rs2 = SimulatedRecordSet.generate(leak_cfg, n2, leak_start, interval, state=rs1.state)
+
+    all_records = rs1.records + rs2.records
+    ems_records = [_to_ems_record_mains(r) for r in all_records]
+    report = _build_report(ems_records, lser)
+    return report, leak_cfg
+
+
+def scenario_bad_week(days: int, interval: int) -> tuple[EmsReport, SimulationConfig]:
+    """Demo: 'bad week' — small individually-benign events that add up.
+
+    13-day timeline with brief outages and a stuck door, none of them dramatic
+    on their own but the chart makes the pattern visible:
+      normal 2d → 6h outage → normal 2.5d → 3h stuck door → normal 2.5d
+      → 6h outage → normal ~5.375d.
+    Story: 'multiple small events on one chart — easy to miss individually,
+    obvious in aggregate.'
+    """
+    lser = SCENARIO_SERIALS["bad_week"]
+    start = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
+
+    DAY = 86400
+    HOUR = 3600
+
+    segments = [
+        (0,                                            2 * DAY,                     None),
+        (2 * DAY,                                      2 * DAY + 6 * HOUR,          "outage"),
+        (2 * DAY + 6 * HOUR,                           2 * DAY + 6 * HOUR + int(2.5 * DAY), None),
+        (2 * DAY + 6 * HOUR + int(2.5 * DAY),          2 * DAY + 9 * HOUR + int(2.5 * DAY), "stuck_door"),
+        (2 * DAY + 9 * HOUR + int(2.5 * DAY),          2 * DAY + 9 * HOUR + int(5.0 * DAY), None),
+        (2 * DAY + 9 * HOUR + int(5.0 * DAY),          2 * DAY + 15 * HOUR + int(5.0 * DAY), "outage"),
+        (2 * DAY + 15 * HOUR + int(5.0 * DAY),         days * DAY,                  None),
+    ]
+
+    all_records = []
+    state = None
+
+    for seg_start_s, seg_end_s, fault_kind in segments:
+        seg_seconds = seg_end_s - seg_start_s
+        if seg_seconds <= 0:
+            continue
+        batch_size = seg_seconds // interval
+
+        seg_config = _base_config(seed=49)
+
+        if fault_kind == "outage":
+            seg_config.fault = FaultConfig(
+                fault_type=FaultType.POWER_OUTAGE,
+                fault_start_offset_s=0,
+                fault_duration_s=0,
+            )
+            if state is None:
+                state = SimulatorState()
+            state._power_in_outage = True
+            state._power_outage_end = start + dt.timedelta(seconds=seg_end_s + DAY)
+        elif fault_kind == "stuck_door":
+            seg_config.fault = FaultConfig(
+                fault_type=FaultType.STUCK_DOOR,
+                fault_start_offset_s=0,
+                fault_duration_s=0,
+            )
+            if state is not None:
+                state._power_in_outage = False
+                state._power_outage_end = None
+        else:
+            if state is not None:
+                state._power_in_outage = False
+                state._power_outage_end = None
+
+        seg_start_dt = start + dt.timedelta(seconds=seg_start_s)
+        rs = SimulatedRecordSet.generate(seg_config, batch_size, seg_start_dt, interval, state=state)
+        all_records.extend(rs.records)
+        state = rs.state
+
+    ems_records = [_to_ems_record_mains(r) for r in all_records]
+    report = _build_report(ems_records, lser)
+    return report, _base_config(seed=49)
+
+
 def _to_ems_record_mains(record: dict):
     """Convert a raw simulation record dict to EmsRecordMains."""
     from utils.schemas import EmsRecordMains
@@ -322,6 +478,9 @@ SCENARIOS = {
     "freeze_alarm": scenario_freeze_alarm,
     "power_outage": scenario_power_outage,
     "outage_and_door_event": scenario_outage_and_door_event,
+    "heat_wave": scenario_heat_wave,
+    "refrigerant_leak": scenario_refrigerant_leak,
+    "bad_week": scenario_bad_week,
 }
 
 

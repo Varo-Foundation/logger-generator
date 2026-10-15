@@ -1,0 +1,24 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.14"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          python-version: ${{ matrix.python }}
+      - run: uv run --locked pytest -q
+      - name: Command line smoke test
+        run: |
+          uv run --locked logger-generator --list-scenarios > /dev/null
+          uv run --locked logger-generator scenario format-tour --out "$RUNNER_TEMP/tour"

@@ -1,0 +1,29 @@
+[project]
+name = "logger-generator"
+version = "0.1.0"
+description = "Realistic, synthetic cold chain logger downloads (Fridge-tag, WHO PQS E006 EMS, Haier HETL) for tests, demos and screenshots"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+dependencies = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Repository = "https://github.com/Varo-Foundation/logger-generator"
+
+[project.scripts]
+logger-generator = "logger_generator.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

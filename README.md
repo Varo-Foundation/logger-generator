@@ -58,7 +58,7 @@ With [uv](https://docs.astral.sh/uv/), nothing needs installing:
 uvx --from git+https://github.com/Varo-Foundation/logger-generator logger-generator --help
 
 # Pinned to a release (what other projects should do, so their fixtures stay reproducible)
-uvx --from git+https://github.com/Varo-Foundation/logger-generator@v0.1.0 \
+uvx --from git+https://github.com/Varo-Foundation/logger-generator@v0.2.0 \
     logger-generator ems --scenario power-outage --out /tmp/ems
 ```
 
@@ -69,7 +69,7 @@ uv run logger-generator --list-scenarios
 uv run pytest
 ```
 
-Or install it as a tool: `uv tool install git+https://github.com/Varo-Foundation/logger-generator@v0.1.0`.
+Or install it as a tool: `uv tool install git+https://github.com/Varo-Foundation/logger-generator@v0.2.0`.
 Each module also works as a library (`from logger_generator import fridgetag, ems, haier, metafridge`);
 see the module docstrings.
 
@@ -388,7 +388,7 @@ Pin a release tag and regenerate fixtures with a script committed next to them, 
 can reproduce them and a format change is one tag bump away.
 
 - **Varo iOS** regenerates every bundled sample with `scripts/generate-samples.sh`, which
-  calls `uvx --from git+https://github.com/Varo-Foundation/logger-generator@v0.1.0
+  calls `uvx --from git+https://github.com/Varo-Foundation/logger-generator@v0.2.0
   logger-generator scenario ...` for the demo drives and the screenshot story.
 - **Varo Android** tests: generate into the test resources, e.g.
   `logger-generator scenario parser-edge-cases --out app/src/test/resources/generated`,
@@ -396,7 +396,7 @@ can reproduce them and a format change is one tag bump away.
 - **Pogo LT silver harness:** generate the logger files for a fixture folder (`ems`,
   `fridgetag`, `haier`, `metafridge`), add the Varo metadata JSON and `expected.json` the harness needs,
   and record the generator command and tag in the fixture's notes.
-- **Anything else:** `uvx --from git+https://github.com/Varo-Foundation/logger-generator@v0.1.0
+- **Anything else:** `uvx --from git+https://github.com/Varo-Foundation/logger-generator@v0.2.0
   logger-generator format-or-scenario ... --out your/fixtures`. Loop over seeds for variety.
 
 Output only changes in a release that says so; the golden tests guard this.

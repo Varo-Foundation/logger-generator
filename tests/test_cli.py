@@ -5,7 +5,7 @@ from logger_generator import __version__, scenarios
 from logger_generator.cli import main
 
 
-@pytest.mark.parametrize("command", ["fridgetag", "ems", "haier", "metafridge", "scenario"])
+@pytest.mark.parametrize("command", ["fridgetag", "ems", "haier", "metafridge", "scenario", "library"])
 def test_help(capsys, command):
     with pytest.raises(SystemExit) as exit:
         main([command, "--help"])

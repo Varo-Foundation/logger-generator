@@ -2,7 +2,7 @@
 import argparse
 import sys
 
-from . import __version__, ems, fridgetag, haier, metafridge, scenarios
+from . import __version__, ems, fridgetag, haier, library, metafridge, scenarios
 
 
 def _description(module):
@@ -36,6 +36,11 @@ def build_parser():
     story.add_argument("--list", action="store_true", help="list every scenario and exit")
     story.add_argument("--out", help="folder to write into (subfolders per drive where the story has several)")
     story.set_defaults(run=_run_story)
+    test_library = commands.add_parser("library", help="the test library: curated cases with expected outcomes and a manifest",
+                                       description=_description(library),
+                                       formatter_class=argparse.RawDescriptionHelpFormatter)
+    library.add_arguments(test_library)
+    test_library.set_defaults(run=library.run)
     return parser
 
 

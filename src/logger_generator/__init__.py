@@ -10,6 +10,7 @@ byte-identical output:
 - `metafridge`: Aucma MetaFridge CFD-50 SDD 30 DTR reports (`.csv` + `.pdf`)
 - `scenarios`: the named scenario catalogue and curated multi-file stories
 - `damage`: deliberately broken variants for parser tests
+- `library`: the test library, curated cases with the outcome an app should show
 
 Everything written is made up. Never add real device data to this package.
 """

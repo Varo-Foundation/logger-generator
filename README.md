@@ -24,6 +24,7 @@ reads these formats.
 | `haier` | Haier HETL-01 30-day temperature recorder export: `HE<serial>.CSV` |
 | `metafridge` | Aucma MetaFridge CFD-50 SDD 30 DTR report: `<serial>_<yyyyMMdd>_<yyyyMMdd>.csv` + `.pdf` |
 | `scenario` | Curated multi-drive stories (app screenshots, demo drives, parser edge cases, tours) |
+| `library` | The [test library](#test-library): 37 cases with the outcome an app should show, plus `manifest.json` |
 
 ## Supported devices and the public-only rule
 
@@ -244,6 +245,81 @@ Curated stories take only `--out`; stories with several drives write one subfold
 | `format-tour` | One normal download of every format: Fridge-tag 2, 2E, 2L, EMS, Haier, MetaFridge |
 | `alarm-tour` | Fridge-tag heat and freeze, EMS power outage, door and freeze, Haier heat, MetaFridge heat and freeze |
 
+## Test library
+
+```sh
+logger-generator library --out DIR
+```
+
+A curated set of test cases for apps that read these formats, one folder per case laid out
+like the logger's drive, and `manifest.json` at the root describing each case and the
+outcome an app should show for it. It covers normal downloads and alarms for every format,
+damaged files, and picks that aren't a logger drive. The Varo iOS app bundles it (debug
+console, "Test data library") and runs every case through its import path as a regression
+test; other projects can use it the same way, or copy the folders onto a thumb drive.
+
+| Group | Cases |
+| --- | --- |
+| Fridge-tag | 2E normal, heat alarm, warm spell without alarm, excursion across midnight; 2L freeze; 2 with an unset clock; 2E in Fahrenheit, with freezer limits, with two reports on the drive, and without its PDF |
+| EMS | Normal, long history (two `DATA_HISTORY` files), 30-hour power outage, short outages, door left open, compressor failure (heat), thermostat fault (freeze), refrigerant leak, no history yet |
+| Haier | Normal, heat alarm, left at room temperature |
+| MetaFridge | Normal, heat alarm, older firmware layout |
+| Broken files | Fridge-tag and MetaFridge reports cut off; EMS without SYNC, with CURRENT_DATA cut off, with unreadable record times, with repeated records, with a lower-case `data_history`; Haier with damaged lines |
+| Wrong picks | An EMS drive's `DATA_HISTORY` folder, an empty folder, a folder of unrelated files, and a logger one folder down (which should still be found) |
+
+`manifest.json`:
+
+```json
+{
+  "version": 1,
+  "generator": "0.3.0",
+  "cases": [
+    {
+      "id": "fridgetag-2e-two-reports",
+      "title": "Fridge-tag 2E, two reports on the drive",
+      "family": "fridgeTag",
+      "group": "Fridge-tag",
+      "description": "The drive holds today's report and one from a month ago; the newest should be used.",
+      "path": "fridgetag-2e-two-reports",
+      "pickPath": "fridgetag-2e-two-reports",
+      "readAt": "2026-10-15T09:20:00",
+      "expect": {
+        "outcome": "recognized", "family": "fridgeTag", "parse": "ok", "days": 60, "alarmDays": 0,
+        "failingChecks": [], "notices": ["multipleReports"]
+      }
+    }
+  ]
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `family` | The logger in the case: `fridgeTag`, `pqsEms`, `haier` or `metaFridge` (also set for wrong picks, where it names the drive the folder came from) |
+| `path`, `pickPath` | The case folder, and the folder a tester should pick (relative to the library root). They differ only for picks of a folder inside a drive, e.g. `wrong-pick-history-folder/DATA_HISTORY` |
+| `readAt` | Local wall-clock time the case was read. Every case uses 2026-10-15 09:20, and every file and folder carries that modification time |
+| `expect.outcome` | `recognized`, `insideLoggerFolder` (a folder inside a logger drive), `noLoggerFiles` or `empty` |
+| `expect.parse` | `ok`; `partial` (read, but part of it was unusable: a report that ends early, a data file that didn't parse, damaged lines or records); `failed` |
+| `expect.days`, `expect.alarmDays` | Days recorded and days with a temperature alarm, as the import summary shows them, for a read at `readAt` in the device's time zone |
+| `expect.failingChecks` | Ids of the import checks that fail (Varo's `ImportChecks` and, for EMS drives, the PQS E006 rules in `EmsValidator`). Checks about the drive itself (file system, removable or not) and the data's age are left out |
+| `expect.notices` | Notices on the import summary, by Varo's `ImportNotice.Kind`: `unreadableData`, `incomplete`, `duplicate`, `foundInSubfolder`, `missingCompanion`, `multipleReports`, `clockUnset` |
+
+Any `expect` field can be `null`, meaning "don't check"; wrong picks leave the fields that
+only apply to a recognized logger null. Expectations are only recorded for stable results.
+
+**Import library cases like a bundled sample.** Read each case as test data at its
+`readAt` rather than at the current time: EMS records carry only times relative to the
+read, so their day and alarm counts depend on it, and a case's age or its place on the
+phone's storage should never raise "old report" or "copy on this phone" notices (those are
+not in any `expect`).
+
+**Adding a case:** add a `Case` to `CASES` in `src/logger_generator/library.py` (an id, title,
+family, group, one-sentence description, a builder that writes the folder, and `expect`;
+`pick=` for a subfolder pick). Generate the library, run it through the Varo iOS import
+path to get the values (`VARO_CORPUS_NOW=2026-10-15T09:20:00 scripts/check-device-corpus.sh
+DIR` prints family, parse result, days, alarm days and failing checks per folder; its
+library self-test reports notices too), fill in `expect`, then refresh the golden hashes
+with `UPDATE_GOLDEN=1 uv run pytest tests/test_library.py`.
+
 ## Format reference
 
 ### Berlinger Fridge-tag 2 / 2E / 2L
@@ -389,7 +465,8 @@ can reproduce them and a format change is one tag bump away.
 
 - **Varo iOS** regenerates every bundled sample with `scripts/generate-samples.sh`, which
   calls `uvx --from git+https://github.com/Varo-Foundation/logger-generator@v0.2.0
-  logger-generator scenario ...` for the demo drives and the screenshot story.
+  logger-generator scenario ...` for the demo drives and the screenshot story, and bundles
+  the test library (`logger-generator library`) as its regression suite.
 - **Varo Android** tests: generate into the test resources, e.g.
   `logger-generator scenario parser-edge-cases --out app/src/test/resources/generated`,
   and commit the files with the command that made them.

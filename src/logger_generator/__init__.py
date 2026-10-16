@@ -15,4 +15,4 @@ byte-identical output:
 Everything written is made up. Never add real device data to this package.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"

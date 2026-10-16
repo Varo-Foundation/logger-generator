@@ -1,6 +1,6 @@
 [project]
 name = "logger-generator"
-version = "0.2.0"
+version = "0.3.0"
 description = "Realistic, synthetic cold chain logger downloads (Fridge-tag, WHO PQS E006 EMS, Haier HETL, MetaFridge) for tests, demos and screenshots"
 readme = "README.md"
 license = "MIT"

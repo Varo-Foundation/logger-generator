@@ -22,6 +22,7 @@ reads these formats.
 | `fridgetag` | Berlinger Fridge-tag 2 / 2E / 2L history report: `<serial>_<yyyyMMddHHmm>.txt` + `.pdf` |
 | `ems` | WHO PQS E006 EMS drive: `CURRENT_DATA`, `SYNC`, `DATA_HISTORY/`, `60DTR_SUMMARY` PDF |
 | `haier` | Haier HETL-01 30-day temperature recorder export: `HE<serial>.CSV` |
+| `metafridge` | Aucma MetaFridge CFD-50 SDD 30 DTR report: `<serial>_<yyyyMMdd>_<yyyyMMdd>.csv` + `.pdf` |
 | `scenario` | Curated multi-drive stories (app screenshots, demo drives, parser edge cases, tours) |
 
 ## Supported devices and the public-only rule
@@ -35,6 +36,7 @@ public specification or visible to anyone who buys the device.
 | WHO PQS E006 EMS (generic) | The file layout and fields come from the public WHO PQS E006 specification |
 | Berlinger Fridge-tag 2 / 2E / 2L | Commercially sold 30-day recorders; the report is written to the tag's own USB drive |
 | Haier HETL-01 and Haier integrated EMS | Commercially sold with PQS-prequalified Haier Biomedical refrigerators |
+| Aucma MetaFridge CFD-50 SDD | Commercially sold solar direct-drive refrigerator; its public user manual (section 5.5) describes the USB download, and the CSV is visible to anyone with the fridge |
 
 Not included, and not to be added: prototypes, unreleased hardware and anything under
 NDA. Their names, manufacturer strings and model strings must not appear anywhere here,
@@ -68,7 +70,7 @@ uv run pytest
 ```
 
 Or install it as a tool: `uv tool install git+https://github.com/Varo-Foundation/logger-generator@v0.1.0`.
-Each module also works as a library (`from logger_generator import fridgetag, ems, haier`);
+Each module also works as a library (`from logger_generator import fridgetag, ems, haier, metafridge`);
 see the module docstrings.
 
 ## Commands
@@ -143,6 +145,24 @@ logger-generator haier --scenario heat-excursion --seed 4 --out DIR
 | `--base C`, `--swing C`, `--excursion` | `4.6`, `0.8` | As for `fridgetag` |
 | `--interval MIN` | `6` | Record interval |
 
+### `metafridge`
+
+```sh
+logger-generator metafridge --scenario heat-excursion --seed 4 --out DIR
+logger-generator metafridge --active-days 28 --drift 8:1.5 --out DIR
+```
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `--scenario NAME` | `normal` | Preset story (below) |
+| `--serial` | `99S-0001` | Fridge serial (the last 7 characters); also the file name prefix |
+| `--created yyyy-mm-ddTHH:MM:SS` | `2026-10-15T09:20:00` | Report creation; row `01` is that day up to this time |
+| `--days N` | `60` | Day rows in the report window |
+| `--active-days N` | all | Days with readings; earlier rows keep their number and date with blank cells |
+| `--seed N` | `1` | Series, door seconds, holdover and power figures |
+| `--base C`, `--swing C`, `--excursion`, `--drift` | `4.6`, `0.8` | As for `fridgetag` |
+| `--legacy` | off | The older firmware's 10-column layout |
+
 ### `scenario`
 
 ```sh
@@ -200,6 +220,19 @@ Curated stories take only `--out`; stories with several drives write one subfold
 | `room-temperature` | A logger left out of the fridge (about 22 °C): `High Alarm` |
 | `damaged-lines` | Three corrupted reading lines (year 2225, a garbled `2..9`, a cut-off line) among good ones |
 
+### MetaFridge (`metafridge --scenario`)
+
+| Name | What it shows |
+| --- | --- |
+| `normal` | A 2-8 °C solar fridge, no excursions |
+| `heat-excursion` | A 17 h warm spell 5 days back peaking at +12 °C: `ALARM` with time above limit that day |
+| `freeze-event` | A cold dawn 12 days back down to −1.6 °C: `ALARM` with time below limit that day |
+| `cloudy-week` | A cloudy spell: baselines drift up to +1.5 °C for three days, lower Power Good and holdover, no alarm |
+| `recently-installed` | Installed 28 days before the report: rows 29-60 have a date and blank cells |
+| `not-cooling` | Switched off at room temperature (about 22 °C): `ALARM` all day every day, Power Good `0.0`, no holdover |
+| `legacy-layout` | The older firmware layout: no BOM, LF, 10 comma-padded columns, blank serial, `M/d/yyyy` dates, `h:mm` and `24:00:00` durations |
+| `damaged-truncated` | The CSV cut off part-way through the rows; the PDF is intact |
+
 ### Curated stories (`scenario NAME`)
 
 | Name | Writes |
@@ -207,9 +240,9 @@ Curated stories take only `--out`; stories with several drives write one subfold
 | `screenshot-story` | `FridgeTag/` (a Fridge-tag 2E with a heat alarm in a cloudy spell, a warm day without alarm and a freeze alarm), `FridgeTagPast/` (an older, clean Fridge-tag 2), `EMS/` (a Haier HBC-260 drive with three outages, one raising `HEAT`, and a lid ajar). The Varo App Store screenshots use it |
 | `demo-ems` | One drive (`SAMPLE-EMS-0001`) from a simpler first-order model: 60 days, one short cut, placeholder summary PDF |
 | `demo-ems-alarm` | The same fridge (`SAMPLE-EMS-0002`) with `HEAT`, `FRZE`, `DOOR` and `POWR` |
-| `parser-edge-cases` | Every damaged variant above, plus an unset-clock and a Fahrenheit Fridge-tag, one folder each |
-| `format-tour` | One normal download of every format: Fridge-tag 2, 2E, 2L, EMS, Haier |
-| `alarm-tour` | Fridge-tag heat and freeze, EMS power outage, door and freeze, Haier heat |
+| `parser-edge-cases` | Every damaged variant above, plus an unset-clock and a Fahrenheit Fridge-tag and a legacy-layout and a recently installed MetaFridge, one folder each |
+| `format-tour` | One normal download of every format: Fridge-tag 2, 2E, 2L, EMS, Haier, MetaFridge |
+| `alarm-tour` | Fridge-tag heat and freeze, EMS power outage, door and freeze, Haier heat, MetaFridge heat and freeze |
 
 ## Format reference
 
@@ -305,9 +338,38 @@ MM.DD.YYYY  HH:MM:SS   T
 - `Alarm State` is `High Alarm` once a run above the high limit lasted its delay, `Low Alarm`
   for a run at or below the low limit, otherwise `Normal`.
 
+### Aucma MetaFridge CFD-50 SDD
+
+The fridge's drive holds the newest 30 DTR report as CSV and PDF in its top level, named
+`<serial>_<yyyyMMdd>_<yyyyMMdd>.csv` (the last 7 characters of the fridge serial, then the
+first and last day of the report window); older reports sit in subfolders (not modelled).
+
+```text
+CFD50 30 DTR REPORT                                 (UTF-8 BOM, CRLF)
+Fridge Serial Number:, ,99S-0001
+Report Creation Date:, ,2026-10-15
+Report Creation Time:, ,09:20:00
+DayNum,Date,Average Temperature (°C),Status,Minimum Temperature (°C),Total Time Below Limit (hh:mm),Total Low Alarm Time (hh:mm),Maximum Temperature (°C),Total Time Above Limit (hh:mm),Total High Alarm Time (hh:mm),Door Open Time (seconds),Min Holdover (days),Power Good (%),Faults
+01,2026-10-15,4.8,OK,4.1,00:00,00:00,5.6,00:00,00:00,74,4.4,46.5,0
+...
+60,2026-08-17, , , , , , , , , , , ,
+```
+
+- One row per day of the window, newest first; `01` is the report day up to the creation
+  time. Days before installation keep their number and date with every other cell blank.
+- Temperatures in °C to one decimal; durations `hh:mm`, a whole day `24:00`.
+- Time below/above limit counts minutes below +2 °C and above +8 °C; the alarm time equals
+  it, and `Status` is `ALARM` on a day with any alarm time. Door, holdover and power figures
+  are illustrative, and fault codes are always `0`.
+- Older firmware: no BOM, LF line endings, every line padded with commas to 10 columns, a
+  blank serial, unpadded day numbers, `M/d/yyyy` dates, `h:mm` durations, `24:00:00` for a
+  whole day, and only the first ten columns.
+- The PDF is a one-page summary (chart and table of every day with readings). Apps only
+  check that it is present; it is not a copy of the manufacturer's layout.
+
 ## How it simulates
 
-- **Fridge-tag and Haier:** one reading per minute: a daily cosine around the base
+- **Fridge-tag, Haier and MetaFridge:** one reading per minute: a daily cosine around the base
   temperature, a slow day-to-day wander, short warm bumps for door openings in clinic hours,
   then the excursions (a smooth warm-up, a broad top and a pull-down) and baseline drifts.
   Days and alarms are summarized from that series.
@@ -332,7 +394,7 @@ can reproduce them and a format change is one tag bump away.
   `logger-generator scenario parser-edge-cases --out app/src/test/resources/generated`,
   and commit the files with the command that made them.
 - **Pogo LT silver harness:** generate the logger files for a fixture folder (`ems`,
-  `fridgetag`, `haier`), add the Varo metadata JSON and `expected.json` the harness needs,
+  `fridgetag`, `haier`, `metafridge`), add the Varo metadata JSON and `expected.json` the harness needs,
   and record the generator command and tag in the fixture's notes.
 - **Anything else:** `uvx --from git+https://github.com/Varo-Foundation/logger-generator@v0.1.0
   logger-generator format-or-scenario ... --out your/fixtures`. Loop over seeds for variety.
@@ -343,7 +405,9 @@ Output only changes in a release that says so; the golden tests guard this.
 
 Formats and value ranges were checked against real downloads (Fridge-tag 2E reports with
 and without alarms, and E006 EMS drives from several loggers including Haier's integrated
-EMS). Those downloads stayed on a local machine and nothing from them is here. What was
+EMS). The MetaFridge layouts follow the CSV files the Varo apps' parsers were built and
+tested against, in both firmware layouts; its door, holdover and power values are less
+well calibrated than the temperatures. Those downloads stayed on a local machine and nothing from them is here. What was
 carried over is structural: field order and spelling, number formatting, line endings,
 file naming, alarm bookkeeping, record cadence, header field sets, and typical
 temperature, ambient, voltage and duty-cycle ranges.

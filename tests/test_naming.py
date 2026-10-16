@@ -6,12 +6,13 @@ from patterns import ANDROID_DATA_FILE, HISTORY_FOLDER, IOS_DATA_FILE, android_f
 
 EXPECTED = {  # file kind -> (iOS family, Android pattern)
     "fridgetag-txt": ({"fridgeTag"}, {"BERLINGER_DATA_PATTERN"}),
-    "fridgetag-pdf": (set(), set()),
+    "summary-pdf": (set(), set()),
     "ems-current": ({"pqsCurrent"}, {"CURRENT_DATA_FILE_PATTERN"}),
     "ems-history": ({"pqsHistory"}, {"HISTORY_DATA_FILE_PATTERN"}),
     "ems-sync": ({"pqsSync"}, {"SYNC_DATA_FILE_PATTERN"}),
     "ems-pdf": ({"pqsSummaryPdf"}, {"PDF_DATA_FILE_PATTERN"}),
     "haier": ({"haier"}, {"HAIER_DATA_PATTERN"}),
+    "metafridge": ({"metaFridge"}, {"AUCMA_DATA_PATTERN"}),
 }
 
 
@@ -19,8 +20,10 @@ def kind(rel):
     name = rel.rsplit("/", 1)[-1]
     if name.endswith(".txt"):
         return "fridgetag-txt"
-    if name.upper().endswith(".CSV"):
+    if name.endswith(".CSV"):
         return "haier"
+    if name.endswith(".csv"):
+        return "metafridge"
     if "_CURRENT_DATA_" in name:
         return "ems-current"
     if "_SYNC_" in name:
@@ -29,7 +32,7 @@ def kind(rel):
         return "ems-pdf"
     if "_DATA_" in name:
         return "ems-history"
-    return "fridgetag-pdf"
+    return "summary-pdf"
 
 
 def all_files(stories):
@@ -76,3 +79,10 @@ def test_fridgetag_name_is_serial_and_creation_stamp(stories):
         if kind(rel) == "fridgetag-txt":
             serial, stamp = rel.rsplit("/", 1)[-1][:-4].split("_")
             assert len(serial) == 12 and serial.isdigit() and len(stamp) == 12 and stamp.isdigit()
+
+
+def test_metafridge_name_is_serial_and_date_range(stories):
+    for story, rel in all_files(stories):
+        if kind(rel) == "metafridge":
+            serial, start, end = rel.rsplit("/", 1)[-1][:-4].split("_")
+            assert serial and len(start) == len(end) == 8 and start.isdigit() and end.isdigit() and start <= end

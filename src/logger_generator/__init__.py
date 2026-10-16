@@ -7,6 +7,7 @@ byte-identical output:
 - `fridgetag`: Berlinger Fridge-tag 2 / 2E / 2L history reports (`.txt` + `.pdf`)
 - `ems`: WHO PQS E006 EMS drives (CURRENT_DATA, SYNC, DATA_HISTORY, 60DTR summary PDF)
 - `haier`: Haier HETL-01 30-day temperature recorder exports (`HE<serial>.CSV`)
+- `metafridge`: Aucma MetaFridge CFD-50 SDD 30 DTR reports (`.csv` + `.pdf`)
 - `scenarios`: the named scenario catalogue and curated multi-file stories
 - `damage`: deliberately broken variants for parser tests
 

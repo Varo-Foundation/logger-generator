@@ -1,7 +1,7 @@
 """The scenario catalogue: per-format presets and curated multi-file stories.
 
 Per-format presets live next to their generator (`fridgetag.SCENARIOS`, `ems.SCENARIOS`,
-`haier.SCENARIOS`) and are chosen with `--scenario` on that command. The curated stories
+`haier.SCENARIOS`, `metafridge.SCENARIOS`) and are chosen with `--scenario` on that command. The curated stories
 here write several drives at once and take no options except `--out`:
 
     logger-generator scenario screenshot-story --out DIR
@@ -11,7 +11,7 @@ import os
 from dataclasses import replace
 from datetime import datetime
 
-from . import ems, ems_simple, fridgetag, haier
+from . import ems, ems_simple, fridgetag, haier, metafridge
 from .fridgetag import Excursion
 
 
@@ -43,6 +43,16 @@ def _haier(name, folder, story=None):
     if step:
         step(folder)
     return f"{name}: Haier {story.serial}, " + haier.describe(story, values)
+
+
+def _metafridge(name, folder, story=None):
+    preset = dict(metafridge.SCENARIOS[name][1])
+    step = preset.pop("damage", None)
+    story = replace(story or metafridge.MetaFridgeStory(), **preset)
+    days = metafridge.write(story, folder)
+    if step:
+        step(folder)
+    return f"{name}: MetaFridge {story.serial}, " + metafridge.describe(story, days)
 
 
 def screenshot_story(out):
@@ -104,8 +114,8 @@ def demo_ems_alarm(out):
 def parser_edge_cases(out):
     """Every damaged variant, one folder each: ems-truncated-json, ems-invalid-relt,
     ems-duplicate-records, ems-missing-sync, ems-history-case, fridgetag-truncated,
-    haier-damaged-lines, plus fridgetag-unset-clock and fridgetag-fahrenheit (valid but
-    unusual)."""
+    haier-damaged-lines, metafridge-truncated, plus fridgetag-unset-clock, fridgetag-fahrenheit,
+    metafridge-legacy-layout and metafridge-recently-installed (valid but unusual)."""
     lines = []
     for name in ("damaged-truncated-json", "damaged-invalid-relt", "damaged-duplicate-records",
                  "damaged-missing-sync", "damaged-history-case"):
@@ -115,23 +125,27 @@ def parser_edge_cases(out):
     lines.append(_fridgetag("unset-clock", os.path.join(out, "fridgetag-unset-clock"), replace(base, serial="160600000004")))
     lines.append(_fridgetag("fahrenheit", os.path.join(out, "fridgetag-fahrenheit"), replace(base, serial="160600000005")))
     lines.append(_haier("damaged-lines", os.path.join(out, "haier-damaged-lines")))
+    for name in ("damaged-truncated", "legacy-layout", "recently-installed"):
+        folder = "metafridge-" + name.removeprefix("damaged-")
+        lines.append(_metafridge(name, os.path.join(out, folder)))
     return "\n".join(lines)
 
 
 def format_tour(out):
-    """One normal download of every format: fridgetag-2, fridgetag-2E, fridgetag-2L, ems, haier."""
+    """One normal download of every format: fridgetag-2, fridgetag-2E, fridgetag-2L, ems, haier, metafridge."""
     lines = []
     for i, model in enumerate(("2", "2E", "2L"), start=1):
         story = fridgetag.Story(model, f"16060000001{i}", datetime(2026, 10, 15, 9, 20), seed=10 + i)
         lines.append(_fridgetag("normal", os.path.join(out, f"fridgetag-{model}"), story))
     lines.append(_ems("normal", os.path.join(out, "ems")))
     lines.append(_haier("normal", os.path.join(out, "haier")))
+    lines.append(_metafridge("normal", os.path.join(out, "metafridge")))
     return "\n".join(lines)
 
 
 def alarm_tour(out):
     """One alarm of each kind per format: fridgetag-heat, fridgetag-freeze, ems-power-outage,
-    ems-door-left-open, ems-freeze-event, haier-heat."""
+    ems-door-left-open, ems-freeze-event, haier-heat, metafridge-heat, metafridge-freeze."""
     base = fridgetag.Story("2E", "160600000021", datetime(2026, 10, 15, 9, 20), seed=21)
     return "\n".join([
         _fridgetag("heat-excursion", os.path.join(out, "fridgetag-heat"), base),
@@ -140,6 +154,8 @@ def alarm_tour(out):
         _ems("door-left-open", os.path.join(out, "ems-door-left-open")),
         _ems("freeze-event", os.path.join(out, "ems-freeze-event")),
         _haier("heat-excursion", os.path.join(out, "haier-heat")),
+        _metafridge("heat-excursion", os.path.join(out, "metafridge-heat")),
+        _metafridge("freeze-event", os.path.join(out, "metafridge-freeze")),
     ])
 
 
@@ -156,7 +172,8 @@ STORIES = {
 def catalogue():
     """Text listing of every scenario, grouped by command."""
     lines = []
-    for command, table in (("fridgetag", fridgetag.SCENARIOS), ("ems", ems.SCENARIOS), ("haier", haier.SCENARIOS)):
+    for command, table in (("fridgetag", fridgetag.SCENARIOS), ("ems", ems.SCENARIOS), ("haier", haier.SCENARIOS),
+                           ("metafridge", metafridge.SCENARIOS)):
         lines.append(f"logger-generator {command} --scenario NAME")
         lines += [f"  {name:<28} {description}" for name, (description, _) in table.items()]
         lines.append("")

@@ -2,7 +2,7 @@
 import argparse
 import sys
 
-from . import __version__, ems, fridgetag, haier, scenarios
+from . import __version__, ems, fridgetag, haier, metafridge, scenarios
 
 
 def _description(module):
@@ -22,6 +22,7 @@ def build_parser():
         ("fridgetag", fridgetag, "Berlinger Fridge-tag 2 / 2E / 2L history report (.txt + .pdf)"),
         ("ems", ems, "WHO PQS E006 EMS drive (CURRENT_DATA, SYNC, DATA_HISTORY, 60DTR PDF)"),
         ("haier", haier, "Haier HETL-01 30-day recorder export (HE<serial>.CSV)"),
+        ("metafridge", metafridge, "Aucma MetaFridge CFD-50 SDD 30 DTR report (.csv + .pdf)"),
     ):
         sub = commands.add_parser(name, help=summary, description=_description(module),
                                   formatter_class=argparse.RawDescriptionHelpFormatter)

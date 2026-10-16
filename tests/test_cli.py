@@ -5,7 +5,7 @@ from logger_generator import __version__, scenarios
 from logger_generator.cli import main
 
 
-@pytest.mark.parametrize("command", ["fridgetag", "ems", "haier", "scenario"])
+@pytest.mark.parametrize("command", ["fridgetag", "ems", "haier", "metafridge", "scenario"])
 def test_help(capsys, command):
     with pytest.raises(SystemExit) as exit:
         main([command, "--help"])
@@ -16,7 +16,7 @@ def test_help(capsys, command):
 def test_list_scenarios_names_everything(capsys):
     assert main(["--list-scenarios"]) == 0
     out = capsys.readouterr().out
-    for name in list(scenarios.STORIES) + ["heat-excursion", "power-outage", "damaged-lines", "unset-clock"]:
+    for name in list(scenarios.STORIES) + ["heat-excursion", "power-outage", "damaged-lines", "unset-clock", "legacy-layout"]:
         assert name in out
 
 

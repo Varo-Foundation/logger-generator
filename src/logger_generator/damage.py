@@ -28,6 +28,11 @@ def truncate_fridgetag(folder):
     _cut(_one(folder, "*.txt"), 0.55)
 
 
+def truncate_metafridge(folder):
+    """Cuts the MetaFridge `.csv` at 55 % of its bytes (mid-row, inside the day rows)."""
+    _cut(_one(folder, "*.csv"), 0.55)
+
+
 def truncate_current(folder):
     """Cuts CURRENT_DATA at 60 % of its bytes: no closing brackets, a record cut in half."""
     _cut(_one(folder, "*_CURRENT_DATA_*.json"), 0.6)

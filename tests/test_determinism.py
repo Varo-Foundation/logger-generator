@@ -8,6 +8,7 @@ COMMANDS = {
     "fridgetag": ["fridgetag", "--scenario", "heat-excursion", "--model", "2L", "--days", "20"],
     "ems": ["ems", "--scenario", "power-outage", "--active-days", "62", "--compact"],
     "haier": ["haier", "--scenario", "freeze-event", "--days", "14"],
+    "metafridge": ["metafridge", "--scenario", "cloudy-week", "--days", "30"],
 }
 
 

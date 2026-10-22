@@ -27,10 +27,10 @@ self.onmessage = async ({ data }) => {
       self.postMessage({ id, ok: true, result: JSON.parse(web.catalogue()) });
     } else if (type === "run") {
       const result = web.run(JSON.stringify(data.argv));
-      const [bytes, summary, name] = result.toJs();
+      const [bytes, summary, name, chart] = result.toJs();
       result.destroy();
       const zip = bytes.slice();  // copy out of the Python heap before transferring
-      self.postMessage({ id, ok: true, result: { zip, summary, name } }, [zip.buffer]);
+      self.postMessage({ id, ok: true, result: { zip, summary, name, chart: JSON.parse(chart) } }, [zip.buffer]);
     }
   } catch (error) {
     // argparse exits on bad input; surface its message rather than "SystemExit".

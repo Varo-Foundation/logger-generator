@@ -508,7 +508,8 @@ temperature, ambient, voltage and duty-cycle ranges.
 
 [sample-loggers.varofoundation.org](https://sample-loggers.varofoundation.org) offers the same
 generator to people who don't use the command line: pick a logger and a scenario and download a
-zip, freshly seeded each time, with the command that reproduces it. It is a static site in
+zip, freshly seeded each time, with an interactive chart of what's in it (read back from the
+files, the way an app would) and the command that reproduces it. It is a static site in
 `site/` that runs this package in the browser with [Pyodide](https://pyodide.org), so the page
 and the command line can't drift apart; the ready-made sets are built once per release.
 

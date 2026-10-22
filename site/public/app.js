@@ -1,5 +1,7 @@
 // The page: builds the form from the generator's own catalogue and turns choices into
 // the same command line a user would run.
+import { renderChart } from "./chart.js";
+
 const worker = new Worker("worker.js", { type: "module" });
 const pending = new Map();
 let nextId = 0;
@@ -59,6 +61,7 @@ async function produce(argv, folder) {
     $("result-summary").textContent = result.summary;
     $("result-command").textContent = command(argv, folder);
     $("result").hidden = false;
+    renderChart($("chart"), result.chart);
     return result;
   } catch (error) {
     $("result").hidden = true;

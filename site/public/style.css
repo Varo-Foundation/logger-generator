@@ -139,3 +139,29 @@ button:disabled { opacity: 0.55; cursor: progress; }
 .foot a { color: var(--light-green); }
 .foot-meta { display: flex; gap: 1.25rem; flex-wrap: wrap; }
 .two > div:not(.callout) { padding-top: 1.25rem; }
+
+/* Chart of the generated data (chart.js). */
+.chart { margin: 1rem 0 0.5rem; }
+.chart-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.5rem 1.5rem; margin-bottom: 0.5rem; }
+.chart-head h4 { font: 700 1rem var(--font-brand); color: var(--deep-green); margin: 0; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; color: var(--muted); font-size: 0.85rem; }
+.chart-key { display: inline-flex; align-items: center; gap: 0.4rem; }
+.key-line { width: 16px; height: 2px; border-radius: 1px; background: var(--c); }
+.key-wash { width: 14px; height: 10px; border-radius: 2px; background: var(--c); }
+.key-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 2px #FFFFFF; }
+.chart-frame { position: relative; width: 100%; min-height: 320px; }
+.chart-frame .u-select { background: rgba(0, 63, 44, 0.08); }
+.chart-tip { position: absolute; z-index: 5; pointer-events: none; background: #FFFFFF; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-md); padding: 0.5rem 0.65rem; font-size: 0.82rem; min-width: 11rem; }
+.tip-time { color: var(--muted); margin-bottom: 0.25rem; font-variant-numeric: tabular-nums; }
+.tip-row { display: grid; grid-template-columns: 12px auto 1fr; align-items: center; gap: 0.45rem; white-space: nowrap; }
+.tip-row strong { color: var(--charcoal); font-variant-numeric: tabular-nums; }
+.tip-row span:last-child { color: var(--muted); }
+.tip-key { width: 12px; height: 2px; border-radius: 1px; background: var(--c, var(--muted)); }
+.chart-note { margin: 0 0 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius); background: var(--light-gold); color: var(--charcoal); font-size: 0.88rem; }
+.chart-details { margin: 0.75rem 0; }
+.chart-details summary { cursor: pointer; color: var(--deep-green); font-weight: 600; font-size: 0.92rem; }
+.chart-details pre { margin-top: 0.5rem; }
+.chart-table { border-collapse: collapse; margin-top: 0.5rem; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.chart-table th, .chart-table td { padding: 0.25rem 0.9rem 0.25rem 0; text-align: right; border-bottom: 1px solid var(--line); }
+.chart-table th:first-child, .chart-table td:first-child { text-align: left; }
+.chart-table th { color: var(--muted); font-weight: 600; }

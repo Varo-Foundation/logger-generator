@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <meta name="theme-color" content="#003F2C">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uplot@1.6.32/dist/uPlot.min.css">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="app.js"></script>
 </head>
@@ -82,7 +83,11 @@
 
       <div class="result" id="result" hidden>
         <h3>Downloaded <code id="result-name"></code></h3>
-        <pre id="result-summary"></pre>
+        <div class="chart" id="chart"></div>
+        <details class="chart-details">
+          <summary>What the generator simulated</summary>
+          <pre id="result-summary"></pre>
+        </details>
         <p class="hint">Reproduce these exact files from the command line (needs <a href="https://docs.astral.sh/uv/">uv</a>):</p>
         <div class="command">
           <code id="result-command"></code>

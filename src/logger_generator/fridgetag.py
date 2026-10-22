@@ -124,12 +124,13 @@ def simulate(story):
         days_ago = story.days - 1 - n
         day_offsets[n] = level + story.drift.get(days_ago, 0.0)
 
-    # Short warm bumps when the lid/door is opened during clinic hours.
-    openings = []
+    # Short warm bumps when the lid/door is opened during clinic hours, kept per day: a bump
+    # starts by 15:00 and fades within the hour, so it never reaches the next day.
+    openings = [[] for _ in range(story.days)]
     for n in range(story.days):
         for _ in range(rnd.randint(1, 4)):
             start = n * MINUTES_PER_DAY + rnd.randint(8 * 60 + 30, 15 * 60)
-            openings.append((start, rnd.randint(2, 6), rnd.uniform(0.4, 1.4)))
+            openings[n].append((start, rnd.randint(2, 6), rnd.uniform(0.4, 1.4)))
 
     excursions = []
     for e in story.excursions:
@@ -144,7 +145,7 @@ def simulate(story):
         temp = story.base + day_offsets[n] + story.swing * math.cos(2 * math.pi * (hour - story.peak_hour) / 24)
         wobble = 0.97 * wobble + rnd.gauss(0, 0.03)
         temp += wobble
-        for start, length, bump in openings:
+        for start, length, bump in openings[n]:
             if start <= i < start + length + 25:
                 k = i - start
                 temp += bump * (k / length if k < length else math.exp(-(k - length) / 7))

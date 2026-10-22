@@ -204,15 +204,19 @@ def simulate(story):
 
         # While the lid stands open, other "openings" are the same opening.
         lid_full = any(a <= t0 and b >= t_end for a, b in lids)
+        # Only the windows that touch this interval can apply to its sub-steps; most touch none.
+        outages_now = [(a, b) for a, b in outages if a < t_end and b > t0]
+        failures_now = [(a, b) for a, b in failures if a < t_end and b > t0]
+        stuck_now = [(a, b) for a, b in stuck if a < t_end and b > t0]
         powered_s = door_s = cmpr_s = 0
         for s in range(0, INTERVAL, SUB_STEP):
             t = t0 + s
-            powered = not any(a <= t < b for a, b in outages)
-            door = any(start <= s < start + length for start, length, _ in openings)
+            powered = not outages_now or not any(a <= t < b for a, b in outages_now)
+            door = bool(openings) and any(start <= s < start + length for start, length, _ in openings)
             cooling = math.exp(-story.leak[1] * (t - leak_start) / 3600) if leak_start is not None and t >= leak_start else 1.0
             if thermal.step(ambient, powered, door, cooling,
-                            can_run=not any(a <= t < b for a, b in failures),
-                            stuck_on=any(a <= t < b for a, b in stuck)):
+                            can_run=not failures_now or not any(a <= t < b for a, b in failures_now),
+                            stuck_on=bool(stuck_now) and any(a <= t < b for a, b in stuck_now)):
                 cmpr_s += SUB_STEP
             powered_s += SUB_STEP if powered else 0
             door_s += SUB_STEP if door else 0

@@ -15,4 +15,4 @@ mv site/public/pkg/logger_generator-*-py3-none-any.whl site/public/pkg/logger_ge
 echo "site/public/pkg/logger_generator.whl ($(uv version --short))"
 # The ready-made sets never change within a release, so they are built once here.
 rm -rf site/public/sets
-uv run -q python -c "import sys; sys.path.insert(0, 'site/public'); import web; web.build_sets('site/public/sets')"
+PYTHONDONTWRITEBYTECODE=1 uv run -q python -c "import sys; sys.path.insert(0, 'site/public'); import web; web.build_sets('site/public/sets')"

@@ -8,7 +8,8 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#003F2C">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="app.js"></script>
 </head>
@@ -16,8 +17,7 @@
   <header class="bar">
     <div class="wrap bar-inner">
       <a class="brand" href="https://varofoundation.org">
-        <img src="favicon.svg" alt="" width="28" height="28">
-        <span>Varo Foundation</span>
+        <img src="brand/varo-foundation-logo.svg" alt="Varo Foundation" width="152" height="34">
       </a>
       <a class="bar-link" href="https://github.com/Varo-Foundation/logger-generator">GitHub</a>
     </div>
@@ -99,7 +99,7 @@
     </section>
 
     <section class="wrap two" aria-labelledby="contribute-title">
-      <div>
+      <div class="callout">
         <h2 id="contribute-title">Missing your logger? Send us a file</h2>
         <p>
           You don't need to write any code. If your programme uses a logger or fridge we don't cover,
@@ -129,9 +129,15 @@
     </section>
   </main>
 
-  <footer class="wrap foot">
-    <span>logger-generator <span id="version">…</span></span>
-    <a href="https://github.com/Varo-Foundation/logger-generator">Source on GitHub</a>
+  <footer class="foot">
+    <div class="wrap foot-inner">
+      <a href="https://varofoundation.org"><img src="brand/varo-foundation-logo-on-dark.svg" alt="Varo Foundation" width="134" height="30"></a>
+      <div class="foot-meta">
+        <span>logger-generator <span id="version">…</span></span>
+        <a href="https://github.com/Varo-Foundation/logger-generator">Source on GitHub</a>
+        <a href="https://varofoundation.org">varofoundation.org</a>
+      </div>
+    </div>
   </footer>
 </body>
 </html>

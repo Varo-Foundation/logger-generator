@@ -1,0 +1,29 @@
+name: Site
+
+# Deploys sample-loggers.varofoundation.org from release tags, so the page and the command
+# line it shows pin the same version. Skipped until the repository has the Cloudflare
+# variable and secret.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: vars.CLOUDFLARE_ACCOUNT_ID != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+      - run: site/build.sh
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 22
+      - name: Deploy
+        working-directory: site
+        run: npx --yes wrangler@4.149.0 deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}

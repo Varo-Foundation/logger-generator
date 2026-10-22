@@ -1,0 +1,13 @@
+// sample-loggers.varofoundation.org: static assets only (the generator runs in the browser).
+// Build first with site/build.sh, which puts the wheel in public/pkg/.
+{
+  "name": "sample-loggers",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page"
+  },
+  "routes": [
+    { "pattern": "sample-loggers.varofoundation.org", "custom_domain": true }
+  ]
+}

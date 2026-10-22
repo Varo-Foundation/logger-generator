@@ -504,6 +504,22 @@ temperature, ambient, voltage and duty-cycle ranges.
 - **Changed output:** run `UPDATE_GOLDEN=1 uv run pytest tests/test_golden.py`, and say in
   the commit and release notes which output changed and why.
 
+## Website
+
+[sample-loggers.varofoundation.org](https://sample-loggers.varofoundation.org) offers the same
+generator to people who don't use the command line: pick a logger and a scenario and download a
+zip, freshly seeded each time, with the command that reproduces it. It is a static site in
+`site/` that runs this package in the browser with [Pyodide](https://pyodide.org), so the page
+and the command line can't drift apart; the ready-made sets are built once per release.
+
+```sh
+site/build.sh                     # the wheel and the ready-made sets, into site/public
+# serve site/public with any static file server to preview
+(cd site && npm install --no-save pyodide@314.0.7 && node check.mjs)   # site == CLI, byte for byte
+```
+
+The `Site` workflow deploys it to Cloudflare from release tags (`site/wrangler.jsonc`).
+
 ## Contributing
 
 - Commit straight to `main` in small, logical commits; keep `uv run pytest` green (CI runs

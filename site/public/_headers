@@ -1,0 +1,9 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/pkg/*
+  Cache-Control: public, max-age=300
+
+/*.py
+  Content-Type: text/plain; charset=utf-8

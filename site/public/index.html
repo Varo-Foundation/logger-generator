@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sample logger data · Varo Foundation</title>
+  <meta name="description" content="Realistic, synthetic downloads from vaccine fridge temperature loggers (Fridge-tag, WHO PQS E006 EMS, Haier, MetaFridge) for testing software, training and demos. Generated in your browser; nothing real.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="bar">
+    <div class="wrap bar-inner">
+      <a class="brand" href="https://varofoundation.org">
+        <img src="favicon.svg" alt="" width="28" height="28">
+        <span>Varo Foundation</span>
+      </a>
+      <a class="bar-link" href="https://github.com/Varo-Foundation/logger-generator">GitHub</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <p class="eyebrow">Sample logger data</p>
+        <h1>Realistic temperature logger downloads, made up from scratch</h1>
+        <p class="lede">
+          Files laid out exactly like a vaccine fridge logger's USB drive, from a simulation of the
+          fridge, its door, its power and its faults. Use them to test software that reads logger data,
+          to run training sessions and demos, or to reproduce a problem without anyone sharing real files.
+        </p>
+        <ul class="facts">
+          <li><strong>Nothing real.</strong> No real device, facility or person, ever.</li>
+          <li><strong>Made in your browser.</strong> Nothing is uploaded or stored.</li>
+          <li><strong>Fresh every time.</strong> Each download gets a new seed; the same seed always gives the same files.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="wrap panel" id="generate" aria-labelledby="generate-title">
+      <h2 id="generate-title">Generate a download</h2>
+
+      <div class="status" id="status" role="status">
+        <span class="spinner" aria-hidden="true"></span>
+        <span id="status-text">Loading the generator (about 12 MB the first time, cached after that)…</span>
+      </div>
+
+      <form id="form" hidden>
+        <fieldset>
+          <legend><span class="step">1</span> Logger</legend>
+          <div class="choices" id="formats"></div>
+        </fieldset>
+
+        <fieldset>
+          <legend><span class="step">2</span> Scenario</legend>
+          <div class="scenarios" id="scenarios"></div>
+        </fieldset>
+
+        <fieldset class="options">
+          <legend><span class="step">3</span> Options</legend>
+          <label class="field" id="model-field">
+            <span>Fridge-tag model</span>
+            <select id="model"></select>
+          </label>
+          <label class="field">
+            <span>Seed</span>
+            <span class="seed">
+              <input id="seed" type="number" min="1" max="99999" inputmode="numeric" required>
+              <button type="button" class="ghost" id="reroll" title="Pick a new random seed">New seed</button>
+            </span>
+          </label>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" class="primary" id="go">Generate and download</button>
+        </div>
+      </form>
+
+      <div class="result" id="result" hidden>
+        <h3>Downloaded <code id="result-name"></code></h3>
+        <pre id="result-summary"></pre>
+        <p class="hint">Reproduce these exact files from the command line (needs <a href="https://docs.astral.sh/uv/">uv</a>):</p>
+        <div class="command">
+          <code id="result-command"></code>
+          <button type="button" class="ghost" id="copy">Copy</button>
+        </div>
+        <p class="hint"><a href="#" id="again">Download again</a> if your browser blocked it.</p>
+      </div>
+    </section>
+
+    <section class="wrap" aria-labelledby="sets-title">
+      <h2 id="sets-title">Ready-made sets</h2>
+      <p>Fixed collections, the same every time, for test suites that need stable files.</p>
+      <div class="sets" id="sets"></div>
+    </section>
+
+    <section class="wrap two" aria-labelledby="contribute-title">
+      <div>
+        <h2 id="contribute-title">Missing your logger? Send us a file</h2>
+        <p>
+          You don't need to write any code. If your programme uses a logger or fridge we don't cover,
+          or your devices write something slightly different, email an example download to
+          <a href="mailto:support@varofoundation.org?subject=Sample%20logger%20data%3A%20a%20new%20format">support@varofoundation.org</a>
+          and we'll add it. One file from any commercially available device is enough to start.
+        </p>
+        <p>
+          We use the file only to learn the format. It never goes into the repository, and everything
+          published is generated from scratch. Please email files rather than posting them publicly:
+          real downloads usually carry serial numbers and facility names.
+        </p>
+      </div>
+      <div>
+        <h2>About</h2>
+        <p>
+          Built by the <a href="https://varofoundation.org">Varo Foundation</a> as the shared test data
+          for the Varo apps and Pogo LT, and open source under the MIT license. Its EMS model builds on
+          Benson Miller's open-source <a href="https://github.com/bensonmiller/ems-data-simulator">ems-data-simulator</a>.
+        </p>
+        <p>
+          It covers commercially available devices with public formats only. The
+          <a href="https://github.com/Varo-Foundation/logger-generator#readme">README</a> documents every
+          format field by field, every scenario and the command-line options.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap foot">
+    <span>logger-generator <span id="version">…</span></span>
+    <a href="https://github.com/Varo-Foundation/logger-generator">Source on GitHub</a>
+  </footer>
+</body>
+</html>

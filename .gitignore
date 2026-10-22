@@ -7,3 +7,6 @@ dist/
 *.egg-info/
 .DS_Store
 /out/
+site/public/pkg/
+site/public/sets/
+site/node_modules/

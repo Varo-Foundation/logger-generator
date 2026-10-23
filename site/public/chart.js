@@ -76,7 +76,7 @@ export function renderChart(root, chart) {
 
   const frame = el("div", { className: "chart-frame" });
   const tip = el("div", { className: "chart-tip", hidden: true });
-  root.append(frame, el("p", { className: "hint", textContent: `Drag across the chart to zoom in; double-click to zoom out. Limits: ${chart.limits.source}.` }));
+  root.append(frame, el("p", { className: "hint", textContent: `Drag across the chart to zoom in; double-click to zoom out. Limits: ${chart.limits.source}. The temperatures are illustrative, not a model of a particular fridge.` }));
 
   const data = daily ? [chart.x, chart.min, chart.mean, chart.max] : [chart.x, ...chart.series.map((s) => s.values)];
   const series = daily

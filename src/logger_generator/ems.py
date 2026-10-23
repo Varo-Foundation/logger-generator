@@ -6,16 +6,18 @@
 Also importable: build an `EmsStory` and call `write(story, folder)`; `describe(story, records)`
 summarizes.
 
-The default appliance is a Haier HBC-260 ice-lined refrigerator on mains with its
+The drive's header names a Haier HBC-260 ice-lined refrigerator on mains with its
 integrated EMS (a commercially sold, PQS-prequalified fridge), indoor ambient about
-18-25 C. The physics:
+18-25 C. The format is exact; the behaviour is illustrative, not a calibrated model of an
+HBC-260 or any other appliance (see `Thermal`). The physics is Benson Miller's
+ems-data-simulator model, re-implemented:
 
 - Ambient: a daily cosine (warmest mid-afternoon) plus noise and a slow day-to-day
   weather drift.
 - Door openings: a Poisson process during clinic hours with a small off-hours rate; the
-  presets in `DOOR_PATTERNS` (best practice, normal, frequent short, busy, few but long)
-  were tuned so their opening counts and open seconds per day span what deployed fleets
-  show, from well-run clinics to staff leaving the door open.
+  presets in `DOOR_PATTERNS` (best practice, normal, frequent short, busy, few but long) are
+  adapted from ems-data-simulator's, which were derived from fleet door-opening data, and
+  range from well-run clinics to staff leaving the door open.
 - Chamber: a two-node model (the air the probe reads, the bulk contents) with an ice bank
   at 0 C, Euler-integrated in 10 s steps. The compressor cycles on the ice bank's charge
   (on below 60 %, off when full), so CMPR shows real cycling, and the air-to-ice coupling
@@ -127,7 +129,12 @@ class EmsStory:
 
 
 class Thermal:
-    """Two-node chamber (air the probe reads, contents) with an ice bank."""
+    """Two-node chamber (air the probe reads, contents) with an ice bank.
+
+    Illustrative constants, not a calibrated appliance: R_ICE comes from ems-data-simulator's
+    calibration against an Aucma MetaFridge CFD-50 (solar direct drive); the rest were tuned by
+    hand so every scenario produces its alarms. A realistic profile for a given fridge needs
+    values fitted to that appliance's telemetry."""
 
     R = 1.63  # chamber to ambient, K/W
     C = 30000.0  # chamber air + contents, J/K

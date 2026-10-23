@@ -1,4 +1,4 @@
-"""Realistic, synthetic cold chain logger downloads.
+"""Synthetic cold chain logger downloads in the exact formats the devices write.
 
 Every module writes one logger family's files exactly as the device lays them out on
 its USB drive, from a seeded simulation, so the same arguments always give

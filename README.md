@@ -1,6 +1,7 @@
 # logger-generator
 
-Realistic, synthetic cold chain logger downloads for tests, demos and screenshots.
+Synthetic cold chain logger downloads in the exact formats the devices write, for tests, demos
+and screenshots.
 
 `logger-generator` writes the files a vaccine-refrigerator temperature logger puts on its
 USB drive (same file names, folder layout, field order, number formatting and line
@@ -13,6 +14,11 @@ reads these formats.
 - **Self-consistent:** every daily minimum, maximum, mean, alarm minute and alarm flag is
   computed from one underlying simulated series, so the numbers agree with each other the
   way a real device's do.
+- **Exact format, illustrative behaviour.** File names, layout, fields, number formatting and
+  alarm bookkeeping match what the devices write. The temperatures come from a simple
+  simulation that is not calibrated to any particular appliance, so use the files to test
+  software that reads these formats, not to judge how a real fridge performs. See
+  [How it simulates, and its limits](#how-it-simulates-and-its-limits).
 - **No dependencies:** Python 3.11+ standard library only, PDFs included.
 - **Everything is made up.** No real device, facility or person is in this repository; see
   [the public-only rule](#supported-devices-and-the-public-only-rule).
@@ -48,7 +54,8 @@ status is unclear stays out until it is confirmed.
 **Never commit real device data.** No real downloads, serial numbers, facility names,
 locations tied to a facility, or people's names, in code, fixtures, docs or commit
 messages, not even "anonymised" ones. Calibrate against real downloads on your own machine
-and carry over only structure and typical value ranges (see [Calibration](#calibration)).
+and carry over only structure and typical value ranges (see [What was checked against real
+devices](#what-was-checked-against-real-devices)).
 
 ## Install and run
 
@@ -443,19 +450,32 @@ DayNum,Date,Average Temperature (°C),Status,Minimum Temperature (°C),Total Tim
 - The PDF is a one-page summary (chart and table of every day with readings). Apps only
   check that it is present; it is not a copy of the manufacturer's layout.
 
-## How it simulates
+## How it simulates, and its limits
 
-- **Fridge-tag, Haier and MetaFridge:** one reading per minute: a daily cosine around the base
-  temperature, a slow day-to-day wander, short warm bumps for door openings in clinic hours,
-  then the excursions (a smooth warm-up, a broad top and a pull-down) and baseline drifts.
-  Days and alarms are summarized from that series.
-- **EMS:** a two-node chamber (the air the probe reads and the bulk contents) with an ice
-  bank at 0 °C, integrated in 10-second steps. The compressor cycles on the ice bank's
-  charge; the air-to-ice coupling weakens as the lining melts. Ambient is a daily cosine
-  with noise and weather drift. Door openings are a Poisson process in clinic hours, with
-  presets tuned to span what deployed fleets show, from well-run clinics to doors left open.
-  Faults are injected on top: outages, a lid ajar, compressor failure, a stuck thermostat
-  and a refrigerant leak.
+The formats are exact; the temperatures are illustrative. Neither model below is calibrated
+to a particular appliance, so the data shows the right kinds of events in the right files,
+not how a given fridge would really behave.
+
+- **Fridge-tag, Haier and MetaFridge:** shaped curves, not a physical model. One reading per
+  minute: a daily cosine around the base temperature, a slow day-to-day wander, short warm
+  bumps for door openings in clinic hours, then the excursions (a smooth warm-up, a broad
+  top and a pull-down) and baseline drifts. Days and alarms are summarized from that series.
+- **EMS:** the physical model from Benson Miller's
+  [ems-data-simulator](https://github.com/bensonmiller/ems-data-simulator), re-implemented: a
+  two-node chamber (the air the probe reads and the bulk contents) with an ice bank at 0 °C,
+  integrated in 10-second steps. The compressor cycles on the ice bank's charge; the
+  air-to-ice coupling weakens as the lining melts. Ambient is a daily cosine with noise and
+  weather drift. Door openings are a Poisson process in clinic hours, with presets adapted
+  from ems-data-simulator's, which were derived from fleet door-opening data. Faults are
+  injected on top: outages, a lid ajar, compressor failure, a stuck thermostat and a
+  refrigerant leak.
+- **The EMS constants are illustrative.** The ice-bank coupling comes from
+  ems-data-simulator's calibration against an Aucma MetaFridge CFD-50 (a solar direct-drive
+  fridge); the other values were tuned by hand so each scenario produces its alarms, with a
+  deliberately small ice reserve. The drive's header names a Haier HBC-260 with an integrated
+  EMS because that is a commercially sold appliance, but the chamber does not behave like a
+  measured HBC-260, and there is no solar power model. Realistic behaviour for a specific
+  fridge would need a parameter set calibrated from that appliance's telemetry.
 - Constants are on the `Thermal` class in `ems.py` and the `Story` dataclasses.
 
 ## Using it from other projects
@@ -478,7 +498,7 @@ can reproduce them and a format change is one tag bump away.
 
 Output only changes in a release that says so; the golden tests guard this.
 
-## Calibration
+## What was checked against real devices
 
 Formats and value ranges were checked against real downloads (Fridge-tag 2E reports with
 and without alarms, and E006 EMS drives from several loggers including Haier's integrated
@@ -487,7 +507,8 @@ tested against, in both firmware layouts; its door, holdover and power values ar
 well calibrated than the temperatures. Those downloads stayed on a local machine and nothing from them is here. What was
 carried over is structural: field order and spelling, number formatting, line endings,
 file naming, alarm bookkeeping, record cadence, header field sets, and typical
-temperature, ambient, voltage and duty-cycle ranges.
+temperature, ambient, voltage and duty-cycle ranges. Typical ranges are not the same as a
+calibrated model: see [How it simulates, and its limits](#how-it-simulates-and-its-limits).
 
 ## Adding a format or scenario
 
@@ -530,6 +551,16 @@ The `Site` workflow deploys it to Cloudflare from release tags (`site/wrangler.j
   from Python 3.12 on).
 - Follow the public-only rule and never commit real device data.
 - Releases are tagged `vX.Y.Z` with notes listing any changed output.
+
+## Credits
+
+logger-generator began as a fork of Benson Miller's
+[ems-data-simulator](https://github.com/bensonmiller/ems-data-simulator) (MIT). The EMS model is
+his design, re-implemented here: the two-node chamber with an ice bank, the door-opening
+presets from his fleet analysis, the ambient model, the fault injection and the WHO alarm
+rules. His original code is in this repository's history. The file formats, the Fridge-tag,
+Haier and MetaFridge generators, the scenarios, the test library and the website were added by
+the Varo Foundation.
 
 ## License
 

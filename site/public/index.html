@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sample logger data · Varo Foundation</title>
-  <meta name="description" content="Realistic, synthetic downloads from vaccine fridge temperature loggers (Fridge-tag, WHO PQS E006 EMS, Haier, MetaFridge) for testing software, training and demos. Generated in your browser; nothing real.">
+  <meta name="description" content="Synthetic downloads in the exact formats vaccine fridge temperature loggers write (Fridge-tag, WHO PQS E006 EMS, Haier, MetaFridge), for testing software, training and demos. Generated in your browser; nothing real.">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,14 +28,15 @@
     <section class="hero">
       <div class="wrap">
         <p class="eyebrow">Sample logger data</p>
-        <h1>Realistic temperature logger downloads, made up from scratch</h1>
+        <h1>Sample temperature logger downloads, made up from scratch</h1>
         <p class="lede">
-          Files laid out exactly like a vaccine fridge logger's USB drive, from a simulation of the
-          fridge, its door, its power and its faults. Use them to test software that reads logger data,
+          Files in exactly the format a vaccine fridge logger writes to its USB drive, with power cuts,
+          doors left open, alarms and damaged files on demand. Use them to test software that reads logger data,
           to run training sessions and demos, or to reproduce a problem without anyone sharing real files.
         </p>
         <ul class="facts">
           <li><strong>Nothing real.</strong> No real device, facility or person, ever.</li>
+          <li><strong>Exact format, illustrative temperatures.</strong> Every file matches what the device writes; the temperatures come from a simple simulation, not a model of any particular fridge.</li>
           <li><strong>Made in your browser.</strong> Nothing is uploaded or stored.</li>
           <li><strong>Fresh every time.</strong> Each download gets a new seed; the same seed always gives the same files.</li>
         </ul>
@@ -122,8 +123,9 @@
         <h2>About</h2>
         <p>
           Built by the <a href="https://varofoundation.org">Varo Foundation</a> as the shared test data
-          for the Varo apps and Pogo LT, and open source under the MIT license. Its EMS model builds on
-          Benson Miller's open-source <a href="https://github.com/bensonmiller/ems-data-simulator">ems-data-simulator</a>.
+          for the Varo apps and Pogo LT, and open source under the MIT license. It began as Benson Miller's
+          open-source <a href="https://github.com/bensonmiller/ems-data-simulator">ems-data-simulator</a>, whose
+          EMS model it re-implements.
         </p>
         <p>
           It covers commercially available devices with public formats only. The

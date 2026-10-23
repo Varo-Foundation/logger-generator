@@ -12,7 +12,7 @@ def _description(module):
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="logger-generator",
-        description="Realistic, synthetic cold chain logger downloads, laid out like the logger's USB drive. "
+        description="Synthetic cold chain logger downloads in the exact formats the devices write, laid out like the logger's USB drive. "
                     "Deterministic: the same arguments and seed give byte-identical files.",
         epilog="Run `logger-generator COMMAND --help` for each command's options and format notes.")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
